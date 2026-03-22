@@ -22,3 +22,11 @@ CREATE TABLE IF NOT EXISTS daily_summary (
     failed_transactions BIGINT NOT NULL DEFAULT 0,
     total_volume DOUBLE PRECISION NOT NULL DEFAULT 0.0
 );
+
+-- Seed Initial Data
+INSERT INTO merchant_stats (merchant_id, total_transactions, failed_transactions, total_volume)
+VALUES 
+    ('M456', 0, 0, 0.0),
+    ('M123', 0, 0, 0.0),
+    ('M789', 0, 0, 0.0)
+ON CONFLICT DO NOTHING;

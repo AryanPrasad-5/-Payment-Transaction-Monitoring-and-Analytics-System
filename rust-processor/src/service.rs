@@ -22,7 +22,7 @@ impl TransactionService for PaymentService {
     ) -> Result<Response<TransactionResponse>, Status> {
         let req = request.into_inner();
 
-        // Basic validation
+        
         if req.amount <= 0.0 {
             return Err(Status::invalid_argument("Amount must be greater than zero"));
         }
@@ -32,8 +32,18 @@ impl TransactionService for PaymentService {
 
         let is_success = req.status.to_uppercase() == "SUCCESS";
         let tx_id = Uuid::new_v4();
+        let now = Utc::now();
 
-        // 1. Insert raw transaction
+        
+        let mut tx = match self.db.pool.begin().await {
+            Ok(t) => t,
+            Err(e) => {
+                tracing::error!("Failed to begin transaction: {:?}", e);
+                return Err(Status::internal("Database error"));
+            }
+        };
+
+        
         let insert_tx_result = sqlx::query(
             r#"
             INSERT INTO transactions (id, transaction_id, merchant_id, amount, status, payment_method, created_at)
@@ -46,16 +56,17 @@ impl TransactionService for PaymentService {
         .bind(req.amount)
         .bind(&req.status)
         .bind(&req.payment_method)
-        .bind(Utc::now())
-        .execute(&self.db.pool)
+        .bind(now)
+        .execute(&mut *tx)
         .await;
 
         if let Err(e) = insert_tx_result {
             tracing::error!("Failed to insert transaction: {:?}", e);
+            let _ = tx.rollback().await; // Ignore rollback errors
             return Err(Status::internal("Database error"));
         }
 
-        // 2. Update merchant stats (Upsert pattern)
+       
         let failed_inc: i64 = if is_success { 0 } else { 1 };
         let volume_inc: f64 = if is_success { req.amount } else { 0.0 };
 
@@ -73,13 +84,20 @@ impl TransactionService for PaymentService {
         .bind(&req.merchant_id)
         .bind(failed_inc)
         .bind(volume_inc)
-        .bind(Utc::now())
-        .execute(&self.db.pool)
+        .bind(now)
+        .execute(&mut *tx)
         .await;
 
         if let Err(e) = update_stats_result {
             tracing::error!("Failed to update merchant stats: {:?}", e);
-            // Even if stats fail, we processed the tx successfully
+            let _ = tx.rollback().await;
+            return Err(Status::internal("Database error"));
+        }
+
+        
+        if let Err(e) = tx.commit().await {
+            tracing::error!("Failed to commit database transaction: {:?}", e);
+            return Err(Status::internal("Database error"));
         }
 
         Ok(Response::new(TransactionResponse {
