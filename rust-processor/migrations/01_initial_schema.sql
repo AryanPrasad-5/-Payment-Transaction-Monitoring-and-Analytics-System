@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS daily_summary (
     total_volume DOUBLE PRECISION NOT NULL DEFAULT 0.0
 );
 
--- Seed Initial Data
+
 INSERT INTO merchant_stats (merchant_id, total_transactions, failed_transactions, total_volume)
 VALUES 
     ('M456', 0, 0, 0.0),

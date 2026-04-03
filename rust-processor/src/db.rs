@@ -16,7 +16,7 @@ impl Db {
             .connect(&database_url)
             .await?;
             
-        // Automatically run migrations if needed
+        
         sqlx::migrate!("./migrations").run(&pool).await?;
 
         Ok(Db { pool })
