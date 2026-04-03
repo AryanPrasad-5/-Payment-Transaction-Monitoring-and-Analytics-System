@@ -1,7 +1,8 @@
 {
-  "name": "payment-monitoring-system",
+  "name": "payment-root",
+  "private": true,
   "scripts": {
-    "build": "cd payment-dashboard-ui && npm install && npm run build",
-    "install": "echo 'Installs handled in build script'"
+    "build": "cd payment-dashboard-ui && rm -rf node_modules && npm install && npm run build",
+    "install": "echo 'Skipping root install'"
   }
 }
