@@ -1,0 +1,11 @@
+# Environment variables
+.env
+
+# Go binary
+payment-monitor.exe
+payment-monitor
+
+# IDE
+.idea/
+.vscode/
+*.swp
