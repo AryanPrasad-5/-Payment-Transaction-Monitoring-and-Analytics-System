@@ -16,11 +16,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="glass-panel p-8 w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-transparent">
+      <div className="glass-panel p-10 w-full max-w-md transform transition-all duration-500 hover:scale-[1.01] shadow-2xl">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Welcome Back</h1>
-          <p className="text-slate-500">Sign in to Access Analytics</p>
+          <div className="mx-auto w-16 h-16 bg-gradient-to-tr from-primary-500 to-brandBlue-500 rounded-2xl flex items-center justify-center shadow-lg mb-6 transform -rotate-6 hover:rotate-0 transition-transform">
+             <Lock className="text-white w-8 h-8" />
+          </div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-2 text-gradient">Welcome Back</h1>
+          <p className="text-slate-500 font-medium">Sign in to Access Analytics</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">

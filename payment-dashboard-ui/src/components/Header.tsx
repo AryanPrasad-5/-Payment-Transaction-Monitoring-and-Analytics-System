@@ -2,8 +2,8 @@ import { Bell, Search, UserCircle } from 'lucide-react';
 
 export default function Header() {
   return (
-    <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-10">
-      <div className="flex-1 flex bg-white ring-1 ring-slate-900/5 rounded-full px-4 py-2 max-w-md items-center shadow-sm">
+    <header className="h-20 bg-white/40 backdrop-blur-md border-b border-white/50 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-10 transition-all duration-300">
+      <div className="flex-1 flex bg-white/60 backdrop-blur-sm ring-1 ring-slate-900/5 rounded-full px-4 py-2 max-w-md items-center shadow-sm hover:ring-primary-300 hover:shadow-md transition-all duration-300">
         <Search className="h-5 w-5 text-slate-400" />
         <input 
           type="text" 

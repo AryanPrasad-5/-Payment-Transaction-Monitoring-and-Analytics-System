@@ -31,16 +31,16 @@ const stats = [
 export default function StatsGrid() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {stats.map((stat) => (
-        <div key={stat.name} className="glass-panel p-6 relative overflow-hidden group hover:shadow-md transition-shadow">
+      {stats.map((stat, i) => (
+        <div key={stat.name} className="glass-panel p-6 relative overflow-hidden group transition-all duration-500 hover:-translate-y-1">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-slate-500">{stat.name}</h3>
-            <div className={clsx("p-2 rounded-lg", stat.color)}>
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{stat.name}</h3>
+            <div className={clsx("p-2.5 rounded-xl transition-transform group-hover:scale-110 duration-300", stat.color)}>
               <stat.icon className="h-5 w-5" />
             </div>
           </div>
-          <div className="flex items-baseline gap-4">
-            <p className="text-3xl font-bold text-slate-900 tracking-tight">{stat.value}</p>
+          <div className="flex items-baseline gap-4 mt-2">
+            <p className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-slate-600 tracking-tight">{stat.value}</p>
             <span className={clsx(
               "flex items-center text-sm font-medium",
               stat.trend === 'up' ? "text-emerald-600" : "text-rose-600"
