@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "payment-monitor/proto/gen";
+
+service TransactionService {
+    rpc ProcessTransaction (TransactionRequest) returns (TransactionResponse);
+}
+
+message TransactionRequest {
+    string transaction_id = 1;
+    string merchant_id = 2;
+    double amount = 3;
+    string status = 4;
+    string payment_method = 5;
+}
+
+message TransactionResponse {
+    bool success = 1;
+    string message = 2;
+}
