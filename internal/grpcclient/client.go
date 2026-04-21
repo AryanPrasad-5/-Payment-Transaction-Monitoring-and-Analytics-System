@@ -24,23 +24,19 @@ type Result struct {
 	Success bool
 }
 
+
 func NewClient(address string) (*Client, error) {
-	log.Printf("[gRPC] Connecting to %s ...", address)
+	log.Printf("[gRPC] Connecting to %s (non-blocking)...", address)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	conn, err := grpc.DialContext(
-		ctx,
+	conn, err := grpc.NewClient(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("gRPC dial failed for %q: %w", address, err)
 	}
 
-	log.Printf("[gRPC] Connected to %s", address)
+	log.Printf("[gRPC] Client created for %s (will connect on first RPC)", address)
 	return &Client{
 		conn:   conn,
 		client: pb.NewTransactionServiceClient(conn),
