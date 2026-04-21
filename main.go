@@ -1,44 +1,81 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
-	"payment-monitor/db"
-	"payment-monitor/routes"
+	"payment-monitor/internal/config"
+	"payment-monitor/internal/database"
+	"payment-monitor/internal/grpcclient"
+	"payment-monitor/internal/handlers"
+	"payment-monitor/internal/server"
 )
 
 func main() {
-
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using system environment variables")
+		log.Println("No .env file found — using system environment variables")
 	}
 
-	dsn := getEnv("DATABASE_URL", "")
-	if dsn == "" {
-		log.Fatal("DATABASE_URL is required. Set it in .env or as an environment variable.")
+	cfg := config.Load()
+
+	log.Printf("=== Payment Transaction Monitor ===")
+	log.Printf("  Port:         %s", cfg.Port)
+	log.Printf("  gRPC target:  %s", cfg.GRPCAddress)
+	log.Printf("  DB:           %s", maskDSN(cfg.DatabaseURL))
+
+	db, err := database.New(cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("Database connection failed: %v", err)
 	}
-	db.Connect(dsn)
 
-	port := getEnv("PORT", "8080")
-	gin.SetMode(getEnv("GIN_MODE", gin.DebugMode))
-
-	log.Printf("Starting server | mode=%s port=%s", getEnv("GIN_MODE", gin.DebugMode), port)
-
-	router := gin.Default()
-	routes.SetupRoutes(router)
-
-	if err := router.Run(":" + port); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+	if err := db.Migrate(); err != nil {
+		log.Fatalf("Database migration failed: %v", err)
 	}
+
+	grpcClient, err := grpcclient.NewClient(cfg.GRPCAddress)
+	if err != nil {
+		log.Printf("[WARN] gRPC connection to Rust processor failed: %v", err)
+		log.Printf("[WARN] The service will start, but transaction processing via gRPC will fail until the processor is available.")
+	}
+
+	h := handlers.New(db, grpcClient)
+	srv := server.New(cfg.Port, h)
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := srv.Start(); err != nil {
+			log.Printf("HTTP server error: %v", err)
+		}
+	}()
+
+	<-quit
+	log.Println("Shutdown signal received...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("Graceful shutdown error: %v", err)
+	}
+
+	if grpcClient != nil {
+		grpcClient.Close()
+	}
+
+	log.Println("Server stopped.")
 }
 
-func getEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
+func maskDSN(dsn string) string {
+	if len(dsn) > 30 {
+		return dsn[:30] + "..."
 	}
-	return fallback
+	return dsn
 }
