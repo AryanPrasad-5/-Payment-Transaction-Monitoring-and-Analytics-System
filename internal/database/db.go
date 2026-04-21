@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"time"
+
 	_ "github.com/lib/pq"
+
 	"payment-monitor/internal/models"
 )
 
@@ -25,7 +27,7 @@ func New(databaseURL string) (*DB, error) {
 	conn.SetMaxIdleConns(5)
 	conn.SetConnMaxLifetime(5 * time.Minute)
 
-	log.Println(" PostgreSQL connected")
+	log.Println("PostgreSQL connected")
 	return &DB{conn: conn}, nil
 }
 
@@ -67,7 +69,7 @@ func (db *DB) Migrate() error {
 		}
 	}
 
-	log.Println(" Database migrations applied")
+	log.Println("Database migrations applied")
 	return nil
 }
 
@@ -86,8 +88,8 @@ func (db *DB) InsertTransaction(tx *models.Transaction) error {
 	)
 	return err
 }
-func (db *DB) GetTransactions(filter models.QueryFilter) ([]models.Transaction, error) {
 
+func (db *DB) GetTransactions(filter models.QueryFilter) ([]models.Transaction, error) {
 	query := `SELECT transaction_id, merchant_id, amount, status, payment_method, created_at FROM transactions WHERE 1=1`
 	args := []interface{}{}
 	argIdx := 1

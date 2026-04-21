@@ -40,8 +40,10 @@ func main() {
 
 	grpcClient, err := grpcclient.NewClient(cfg.GRPCAddress)
 	if err != nil {
-		log.Printf("[WARN] gRPC connection to Rust processor failed: %v", err)
-		log.Printf("[WARN] The service will start, but transaction processing via gRPC will fail until the processor is available.")
+		log.Printf("[WARN] gRPC client creation failed: %v", err)
+		log.Printf("[WARN] Transaction processing via gRPC will be unavailable.")
+	} else {
+		log.Printf("[INFO] gRPC client ready (will connect to processor on first request)")
 	}
 
 	h := handlers.New(db, grpcClient)
