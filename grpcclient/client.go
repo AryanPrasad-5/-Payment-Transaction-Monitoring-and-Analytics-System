@@ -51,7 +51,7 @@ func (c *Client) Close() {
 func (c *Client) SendTransaction(
 	transactionID string,
 	merchantID    string,
-	amount        int32,
+	amount        float64,
 	status_       string,
 	paymentMethod string,
 ) (*Result, error) {
@@ -66,7 +66,7 @@ func (c *Client) SendTransaction(
 		PaymentMethod: paymentMethod,
 	}
 
-	log.Printf("[gRPC] → SendTransaction | txn_id=%s merchant=%s amount=%d",
+	log.Printf("[gRPC] → SendTransaction | txn_id=%s merchant=%s amount=%.2f",
 		transactionID, merchantID, amount)
 	resp, err := c.client.ProcessTransaction(ctx, req)
 	if err != nil {
