@@ -1,9 +1,12 @@
 {
+  "version": 2,
   "outputDirectory": "payment-dashboard-ui/dist",
+  "builds": [
+    { "src": "dashboard-api/server.js", "use": "@vercel/node" },
+    { "src": "package.json", "use": "@vercel/static-build" }
+  ],
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/(.*)", "destination": "/dashboard-api/server.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

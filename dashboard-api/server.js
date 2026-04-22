@@ -11,7 +11,11 @@ const JWT_SECRET = 'super-secret-development-key';
 
 // Mock InMemory Database
 const MOCK_DB = {
-  users: [], // Seeded asynchronously below
+  users: [
+    { id: 'u-1', email: 'admin@payment.local', password_hash: '$2b$10$mthMHI349lEEMEGv2b5gwO44v/UhKp7Da1b0IqUdBz/8RmYMhNY9e', role: 'Admin' },
+    { id: 'u-2', email: 'analyst@payment.local', password_hash: '$2b$10$w726ZpK2bEma9z2uJGcMTeyqPXtoTFr/.QI2qcvqMHclUY.lDITmq', role: 'Analyst' },
+    { id: 'u-3', email: 'viewer@payment.local', password_hash: '$2b$10$6wda0VWK34pRKJJkwXnJd.2.h9LX2bneKqIwfrZBK2Z1Lfx4ey48e', role: 'Viewer' }
+  ],
   merchant_stats: { gross_volume: 500000, total_tx: 19678, failed_tx: 2085 },
   transactions: [
     { id: 'tx-1', amount: 1540.00, status: 'SUCCESS', method: 'UPI', date: new Date().toISOString() },
@@ -19,20 +23,6 @@ const MOCK_DB = {
     { id: 'tx-3', amount: 999.00, status: 'SUCCESS', method: 'NET_BANKING', date: new Date(Date.now() - 7200000).toISOString() }
   ]
 };
-
-// Seed multiple users
-async function seedUsers() {
-  const adminHash = await bcrypt.hash('admin123', 10);
-  const analystHash = await bcrypt.hash('analyst123', 10);
-  const viewerHash = await bcrypt.hash('viewer123', 10);
-
-  MOCK_DB.users.push(
-    { id: 'u-1', email: 'admin@payment.local', password_hash: adminHash, role: 'Admin' },
-    { id: 'u-2', email: 'analyst@payment.local', password_hash: analystHash, role: 'Analyst' },
-    { id: 'u-3', email: 'viewer@payment.local', password_hash: viewerHash, role: 'Viewer' }
-  );
-  console.log("Mock Users successfully seeded.");
-}
 
 // Middleware to verify JWT
 const authenticateToken = (req, res, next) => {
@@ -85,8 +75,11 @@ app.get('/api/transactions', authenticateToken, (req, res) => {
    }, 400);
 });
 
-const PORT = 3000;
-app.listen(PORT, async () => {
-    await seedUsers();
-    console.log(`Mock InMemory Dashboard API Gateway running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = 3000;
+  app.listen(PORT, () => {
+      console.log(`Mock InMemory Dashboard API Gateway running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

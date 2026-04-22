@@ -23,7 +23,7 @@ export default function StatsGrid() {
   const [data, setData] = useState({ grossVolume: 0, totalPayments: 0, failedPayments: 0, successRate: 0 });
   
   useEffect(() => {
-     const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+     const API_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:3000');
      axios.get(`${API_URL}/api/analytics`, { headers: { Authorization: `Bearer ${token}` }})
        .then(res => setData(res.data))
        .catch(err => console.error("Could not load stats", err));

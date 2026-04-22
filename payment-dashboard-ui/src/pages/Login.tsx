@@ -21,7 +21,7 @@ export default function Login() {
     setError('');
     
     try {
-       const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+       const API_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:3000');
        const response = await axios.post(`${API_URL}/api/login`, { email, password });
        if (response.data.token) {
           login(response.data.token, response.data.user);

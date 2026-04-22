@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
     tracing::info!("Connected to PostgreSQL and applied migrations.");
 
-    let addr = "[::1]:50051".parse()?;
+    let addr = "0.0.0.0:50051".parse()?;
     let payment_service = PaymentService { db };
 
     tracing::info!("gRPC server listening on {}", addr);
