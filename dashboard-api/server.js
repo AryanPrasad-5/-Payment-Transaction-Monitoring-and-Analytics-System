@@ -37,6 +37,25 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+app.post('/api/signup', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+     const existingUser = MOCK_DB.users.find(u => u.email === email);
+     if (existingUser) return res.status(400).json({ error: 'User already exists' });
+     
+     const password_hash = await bcrypt.hash(password, 10);
+     const newUser = { id: `u-${Date.now()}`, email, password_hash, role: 'Viewer' };
+     MOCK_DB.users.push(newUser);
+
+     const token = jwt.sign({ id: newUser.id, email: newUser.email, role: newUser.role }, JWT_SECRET, { expiresIn: '1d' });
+     setTimeout(() => { // simulate network latency
+       res.json({ token, user: { email: newUser.email, id: newUser.id, role: newUser.role } });
+     }, 800);
+  } catch(e) {
+     res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {

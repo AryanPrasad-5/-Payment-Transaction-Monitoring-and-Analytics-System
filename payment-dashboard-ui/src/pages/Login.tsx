@@ -11,9 +11,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [isSignUp, setIsSignUp] = useState(false);
   const { login } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
     
@@ -22,7 +23,8 @@ export default function Login() {
     
     try {
        const API_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:3000');
-       const response = await axios.post(`${API_URL}/api/login`, { email, password });
+       const endpoint = isSignUp ? `${API_URL}/api/signup` : `${API_URL}/api/login`;
+       const response = await axios.post(endpoint, { email, password });
        if (response.data.token) {
           login(response.data.token, response.data.user);
           navigate('/dashboard');
@@ -48,9 +50,9 @@ export default function Login() {
       >
         <div className="text-center mb-10">
           <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }}>
-             <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Welcome Back</h1>
+             <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">{isSignUp ? 'Create Account' : 'Welcome Back'}</h1>
           </motion.div>
-          <p className="text-slate-500">Sign in with an authorized account</p>
+          <p className="text-slate-500">{isSignUp ? 'Sign up for a new account' : 'Sign in with an authorized account'}</p>
         </div>
 
         {error && (
@@ -64,7 +66,7 @@ export default function Login() {
            </motion.div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleAuth} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
             <div className="relative">
@@ -106,9 +108,15 @@ export default function Login() {
             type="submit"
             className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In To Dashboard'}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isSignUp ? 'Sign Up' : 'Sign In To Dashboard')}
           </motion.button>
         </form>
+        
+        <div className="mt-6 text-center text-sm">
+           <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary-600 hover:text-primary-500 font-medium cursor-pointer transition-colors">
+              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+           </button>
+        </div>
         
         <div className="mt-8 text-center text-xs text-slate-400">
            Sample roles: admin, analyst, viewer (@payment.local) <br/> Passwords: [role]123
