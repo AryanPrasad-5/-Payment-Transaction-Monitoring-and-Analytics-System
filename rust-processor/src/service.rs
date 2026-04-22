@@ -30,7 +30,7 @@ impl TransactionService for PaymentService {
             return Err(Status::invalid_argument("Transaction ID and Merchant ID are required"));
         }
 
-        let is_success = req.status.to_uppercase() == "SUCCESS";
+        let is_success = req.status.eq_ignore_ascii_case("SUCCESS");
         let tx_id = Uuid::new_v4();
         let now = Utc::now();
 
