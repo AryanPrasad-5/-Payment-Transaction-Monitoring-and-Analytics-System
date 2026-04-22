@@ -12,7 +12,8 @@ export default function Dashboard() {
   const [tx, setTx] = useState<any[]>([]);
 
   useEffect(() => {
-     axios.get('http://localhost:3000/api/transactions', { headers: { Authorization: `Bearer ${token}` }})
+     const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+     axios.get(`${API_URL}/api/transactions`, { headers: { Authorization: `Bearer ${token}` }})
        .then(res => setTx(res.data.slice(0, 4)))
        .catch(console.error);
   }, [token]);
