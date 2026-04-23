@@ -16,11 +16,13 @@ const MOCK_DB = {
     { id: 'u-2', email: 'analyst@payment.local', password_hash: '$2b$10$w726ZpK2bEma9z2uJGcMTeyqPXtoTFr/.QI2qcvqMHclUY.lDITmq', role: 'Analyst' },
     { id: 'u-3', email: 'viewer@payment.local', password_hash: '$2b$10$6wda0VWK34pRKJJkwXnJd.2.h9LX2bneKqIwfrZBK2Z1Lfx4ey48e', role: 'Viewer' }
   ],
-  merchant_stats: { gross_volume: 500000, total_tx: 19678, failed_tx: 2085 },
+  merchant_stats: { gross_volume: 1250000, total_transactions: 15420, failed_transactions: 850 },
   transactions: [
-    { id: 'tx-1', amount: 1540.00, status: 'SUCCESS', method: 'UPI', date: new Date().toISOString() },
-    { id: 'tx-2', amount: 350.50, status: 'FAILED', method: 'CREDIT_CARD', date: new Date(Date.now() - 3600000).toISOString() },
-    { id: 'tx-3', amount: 999.00, status: 'SUCCESS', method: 'NET_BANKING', date: new Date(Date.now() - 7200000).toISOString() }
+    { transaction_id: 'tx-1', amount: 1540.00, status: 'SUCCESS', payment_method: 'UPI', created_at: new Date().toISOString() },
+    { transaction_id: 'tx-2', amount: 350.50, status: 'FAILED', payment_method: 'CARD', created_at: new Date(Date.now() - 3600000).toISOString() },
+    { transaction_id: 'tx-3', amount: 999.00, status: 'SUCCESS', payment_method: 'WALLET', created_at: new Date(Date.now() - 7200000).toISOString() },
+    { transaction_id: 'tx-4', amount: 4500.00, status: 'FAILED', payment_method: 'UPI', created_at: new Date(Date.now() - 86400000).toISOString() },
+    { transaction_id: 'tx-5', amount: 120.00, status: 'SUCCESS', payment_method: 'CARD', created_at: new Date(Date.now() - 90000000).toISOString() }
   ]
 };
 
@@ -92,6 +94,38 @@ app.get('/api/transactions', authenticateToken, (req, res) => {
    setTimeout(() => {
      res.json(MOCK_DB.transactions);
    }, 400);
+});
+
+// V1 endpoints mapped for Vercel Mock Backend
+app.get('/api/v1/transactions', authenticateToken, (req, res) => {
+   const statusFilter = req.query.status;
+   let filtered = MOCK_DB.transactions;
+   if (statusFilter) {
+      filtered = filtered.filter(t => t.status === statusFilter);
+   }
+   setTimeout(() => res.json({ count: filtered.length, data: filtered }), 300);
+});
+
+app.post('/api/v1/transactions', authenticateToken, (req, res) => {
+   const { amount, status, payment_method } = req.body;
+   const newTx = {
+      transaction_id: `tx-${Date.now()}`,
+      amount: amount || 0,
+      status: status || 'SUCCESS',
+      payment_method: payment_method || 'UNKNOWN',
+      created_at: new Date().toISOString()
+   };
+   MOCK_DB.transactions.unshift(newTx);
+   
+   MOCK_DB.merchant_stats.total_transactions++;
+   MOCK_DB.merchant_stats.gross_volume += newTx.amount;
+   if (status === 'FAILED') MOCK_DB.merchant_stats.failed_transactions++;
+
+   setTimeout(() => res.json({ message: 'Success', data: newTx }), 200);
+});
+
+app.get('/api/v1/merchants/:id/stats', authenticateToken, (req, res) => {
+   setTimeout(() => res.json({ data: MOCK_DB.merchant_stats }), 300);
 });
 
 if (process.env.NODE_ENV !== 'production') {

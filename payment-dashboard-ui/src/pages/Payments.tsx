@@ -13,7 +13,7 @@ export default function Payments() {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
 
-  const GO_API_URL = import.meta.env.VITE_GO_API_URL || 'http://localhost:8080/api/v1';
+  const GO_API_URL = import.meta.env.VITE_GO_API_URL || (import.meta.env.PROD ? '/api/v1' : 'http://localhost:8080/api/v1');
 
   const fetchTransactions = () => {
     setLoading(true);

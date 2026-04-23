@@ -23,7 +23,7 @@ export default function StatsGrid() {
   const [data, setData] = useState({ grossVolume: 0, totalPayments: 0, failedPayments: 0, successRate: 0 });
   
   useEffect(() => {
-     const GO_API_URL = import.meta.env.VITE_GO_API_URL || 'http://localhost:8080/api/v1';
+     const GO_API_URL = import.meta.env.VITE_GO_API_URL || (import.meta.env.PROD ? '/api/v1' : 'http://localhost:8080/api/v1');
      axios.get(`${GO_API_URL}/merchants/M-1234/stats`, { headers: { Authorization: `Bearer ${token}` }})
        .then(res => {
          const stats = res.data.data;

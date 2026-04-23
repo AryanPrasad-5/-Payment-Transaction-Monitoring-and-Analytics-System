@@ -12,7 +12,7 @@ export default function Dashboard() {
   const [tx, setTx] = useState<any[]>([]);
 
   useEffect(() => {
-     const GO_API_URL = import.meta.env.VITE_GO_API_URL || 'http://localhost:8080/api/v1';
+     const GO_API_URL = import.meta.env.VITE_GO_API_URL || (import.meta.env.PROD ? '/api/v1' : 'http://localhost:8080/api/v1');
      axios.get(`${GO_API_URL}/transactions?limit=4`, { headers: { Authorization: `Bearer ${token}` }})
        .then(res => setTx(res.data.data || []))
        .catch(console.error);
