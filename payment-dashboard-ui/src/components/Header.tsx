@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Search, UserCircle, LogOut, CheckCircle, XCircle } from 'lucide-react';
+import { Bell, Search, UserCircle, LogOut, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -9,6 +9,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [showNotifs, setShowNotifs] = useState(false);
   const [notifs, setNotifs] = useState<any[]>([]);
+  const [isOffline, setIsOffline] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +31,13 @@ export default function Header() {
     }
   }, [showNotifs, token]);
 
+  useEffect(() => {
+    const GO_API_URL = import.meta.env.VITE_GO_API_URL || (import.meta.env.PROD ? '/api/v1' : 'http://localhost:8080/api/v1');
+    axios.get(`${GO_API_URL}/health`)
+      .then(() => setIsOffline(false))
+      .catch(() => setIsOffline(true));
+  }, []);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -39,6 +47,13 @@ export default function Header() {
   const roleName = user && 'role' in user ? (user as any).role : 'System Admin';
 
   return (
+    <>
+    {isOffline && (
+      <div className="bg-rose-500 text-white px-4 py-2 flex items-center justify-center gap-2 text-sm font-medium z-50">
+        <AlertTriangle className="h-4 w-4" />
+        Backend API is unreachable! Please ensure your Go and Rust microservices are running locally.
+      </div>
+    )}
     <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-10 transition-all duration-300">
       <div className="flex-1 flex bg-slate-50 ring-1 ring-slate-900/5 rounded-full px-4 py-2.5 max-w-md items-center shadow-inner hover:ring-primary-500/50 transition-all">
         <Search className="h-5 w-5 text-slate-400" />
@@ -109,5 +124,6 @@ export default function Header() {
         </div>
       </div>
     </header>
+    </>
   );
 }
