@@ -38,9 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
-    // Expire in 1 day matching backend JWT
-    Cookies.set('dashboard_auth_token', newToken, { expires: 1, secure: true, sameSite: 'strict' });
-    Cookies.set('dashboard_user', JSON.stringify(newUser), { expires: 1, secure: true, sameSite: 'strict' });
+    // Expire in 1 day matching backend JWT. Secure only in production to allow localhost testing
+    const isProd = import.meta.env.PROD;
+    Cookies.set('dashboard_auth_token', newToken, { expires: 1, secure: isProd, sameSite: 'strict' });
+    Cookies.set('dashboard_user', JSON.stringify(newUser), { expires: 1, secure: isProd, sameSite: 'strict' });
   };
 
   const logout = () => {
