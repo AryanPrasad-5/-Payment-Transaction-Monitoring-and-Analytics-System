@@ -96,6 +96,42 @@ app.get('/api/transactions', authenticateToken, (req, res) => {
    }, 400);
 });
 
+// V1 endpoints mapped for Vercel Mock Backend
+app.get('/api/v1/transactions', authenticateToken, (req, res) => {
+   const statusFilter = req.query.status;
+   let filtered = MOCK_DB.transactions;
+   if (statusFilter) {
+      filtered = filtered.filter(t => t.status === statusFilter);
+   }
+   setTimeout(() => res.json({ count: filtered.length, data: filtered }), 300);
+});
+
+app.post('/api/v1/transactions', authenticateToken, (req, res) => {
+   const { amount, status, payment_method } = req.body;
+   const newTx = {
+      transaction_id: `tx-${Date.now()}`,
+      amount: amount || 0,
+      status: status || 'SUCCESS',
+      payment_method: payment_method || 'UNKNOWN',
+      created_at: new Date().toISOString()
+   };
+   MOCK_DB.transactions.unshift(newTx);
+   
+   MOCK_DB.merchant_stats.total_transactions++;
+   MOCK_DB.merchant_stats.gross_volume += newTx.amount;
+   if (status === 'FAILED') MOCK_DB.merchant_stats.failed_transactions++;
+
+   setTimeout(() => res.json({ message: 'Success', data: newTx }), 200);
+});
+
+app.get('/api/v1/merchants/:id/stats', authenticateToken, (req, res) => {
+   setTimeout(() => res.json({ data: MOCK_DB.merchant_stats }), 300);
+});
+
+app.get('/api/v1/health', (req, res) => {
+   res.json({ status: "ok" });
+});
+
 if (process.env.NODE_ENV !== 'production') {
   const PORT = 3000;
   app.listen(PORT, () => {
