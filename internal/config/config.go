@@ -1,6 +1,5 @@
 package config
 import "os"
-
 type Config struct {
 	Port        string 
 	DatabaseURL string 

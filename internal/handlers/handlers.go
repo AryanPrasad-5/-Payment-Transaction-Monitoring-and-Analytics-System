@@ -20,7 +20,6 @@ import (
 const (
 	StatusSuccess = "SUCCESS"
 	StatusFailed  = "FAILED"
-
 	PaymentUPI    = "UPI"
 	PaymentCard   = "CARD"
 	PaymentWallet = "WALLET"
@@ -73,11 +72,14 @@ func (h *Handler) IngestTransaction(ctx *gin.Context) {
 		req.Status,
 		req.PaymentMethod,
 	)
+	grpcOK := false
 	if err != nil {
-		log.Printf("[WARN] gRPC processing failed for %s: %v (storing anyway)", txnID, err)
+		log.Printf("[WARN] gRPC processing failed for %s: %v (storing locally)", txnID, err)
 		h.mu.Lock()
 		h.grpcErrors++
 		h.mu.Unlock()
+	} else {
+		grpcOK = true
 	}
 
 	tx := &models.Transaction{
@@ -89,13 +91,15 @@ func (h *Handler) IngestTransaction(ctx *gin.Context) {
 		CreatedAt:     now,
 	}
 
-	if err := h.db.InsertTransaction(tx); err != nil {
-		log.Printf("[ERROR] DB insert failed for %s: %v", txnID, err)
-		h.mu.Lock()
-		h.dbErrors++
-		h.mu.Unlock()
-		respondError(ctx, http.StatusInternalServerError, "Failed to store transaction")
-		return
+	if !grpcOK {
+		if err := h.db.InsertTransaction(tx); err != nil {
+			log.Printf("[ERROR] DB insert failed for %s: %v", txnID, err)
+			h.mu.Lock()
+			h.dbErrors++
+			h.mu.Unlock()
+			respondError(ctx, http.StatusInternalServerError, "Failed to store transaction")
+			return
+		}
 	}
 
 	isFailed := req.Status == StatusFailed

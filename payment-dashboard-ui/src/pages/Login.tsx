@@ -16,6 +16,10 @@ export default function Login() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
+    if (email && password) {
+       navigate('/dashboard');
+=======
     if (!email || !password) return;
     
     setLoading(true);
@@ -33,6 +37,7 @@ export default function Login() {
        setError(err.response?.data?.error || 'Failed to connect to authentication server');
     } finally {
        setLoading(false);
+>>>>>>> origin/main
     }
   };
 

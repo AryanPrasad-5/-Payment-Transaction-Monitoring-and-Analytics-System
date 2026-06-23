@@ -14,7 +14,7 @@ SELECT
     
     NOW() - (random() * interval '30 days')
 FROM generate_series(1, 1000);
-
+                            
 
 INSERT INTO daily_summary (date, total_transactions, failed_transactions, total_volume)
 SELECT 
