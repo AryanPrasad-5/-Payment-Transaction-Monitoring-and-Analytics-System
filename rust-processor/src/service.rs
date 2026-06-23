@@ -1,5 +1,4 @@
 use tonic::{Request, Response, Status};
-use uuid::Uuid;
 use chrono::Utc;
 
 pub mod payment {
@@ -31,7 +30,6 @@ impl TransactionService for PaymentService {
         }
 
         let is_success = req.status.to_uppercase() == "SUCCESS";
-        let tx_id = Uuid::new_v4();
         let now = Utc::now();
 
         
@@ -46,11 +44,10 @@ impl TransactionService for PaymentService {
         
         let insert_tx_result = sqlx::query(
             r#"
-            INSERT INTO transactions (id, transaction_id, merchant_id, amount, status, payment_method, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO transactions (transaction_id, merchant_id, amount, status, payment_method, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
             "#
         )
-        .bind(tx_id)
         .bind(&req.transaction_id)
         .bind(&req.merchant_id)
         .bind(req.amount)
@@ -70,21 +67,25 @@ impl TransactionService for PaymentService {
         let failed_inc: i64 = if is_success { 0 } else { 1 };
         let volume_inc: f64 = if is_success { req.amount } else { 0.0 };
 
+        let success_rate: f64 = if is_success { 100.0 } else { 0.0 };
+
         let update_stats_result = sqlx::query(
             r#"
-            INSERT INTO merchant_stats (merchant_id, total_transactions, failed_transactions, total_volume, updated_at)
+            INSERT INTO merchant_stats (merchant_id, total_transactions, failed_transactions, total_amount, success_rate)
             VALUES ($1, 1, $2, $3, $4)
             ON CONFLICT (merchant_id) DO UPDATE SET
                 total_transactions = merchant_stats.total_transactions + 1,
                 failed_transactions = merchant_stats.failed_transactions + $2,
-                total_volume = merchant_stats.total_volume + $3,
-                updated_at = $4
+                total_amount = merchant_stats.total_amount + $3,
+                success_rate = CASE WHEN (merchant_stats.total_transactions + 1) > 0
+                    THEN ((merchant_stats.total_transactions + 1 - (merchant_stats.failed_transactions + $2))::float / (merchant_stats.total_transactions + 1)::float) * 100.0
+                    ELSE 0.0 END
             "#
         )
         .bind(&req.merchant_id)
         .bind(failed_inc)
         .bind(volume_inc)
-        .bind(now)
+        .bind(success_rate)
         .execute(&mut *tx)
         .await;
 

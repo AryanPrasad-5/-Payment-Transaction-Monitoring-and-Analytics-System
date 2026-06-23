@@ -9,7 +9,6 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Connect to actual backend API later
     if (email && password) {
        navigate('/dashboard');
     }
