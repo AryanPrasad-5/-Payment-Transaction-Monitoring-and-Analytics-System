@@ -12,12 +12,12 @@ impl Db {
             .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/postgres".to_string());
         
         let pool = PgPoolOptions::new()
-            .max_connections(10)
+            .max_connections(50)
             .connect(&database_url)
             .await?;
             
-        
-        sqlx::migrate!("./migrations").run(&pool).await?;
+        // Migrations are handled by the Go Gateway on startup
+        // sqlx::migrate!("./migrations").run(&pool).await?;
 
         Ok(Db { pool })
     }

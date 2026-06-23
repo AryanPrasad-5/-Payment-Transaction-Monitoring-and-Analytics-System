@@ -1,28 +1,77 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const { login } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
     if (email && password) {
        navigate('/dashboard');
+=======
+    if (!email || !password) return;
+    
+    setLoading(true);
+    setError('');
+    
+    try {
+       const API_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:3000');
+       const endpoint = isSignUp ? `${API_URL}/api/signup` : `${API_URL}/api/login`;
+       const response = await axios.post(endpoint, { email, password });
+       if (response.data.token) {
+          login(response.data.token, response.data.user);
+          navigate('/dashboard');
+       }
+    } catch (err: any) {
+       setError(err.response?.data?.error || 'Failed to connect to authentication server');
+    } finally {
+       setLoading(false);
+>>>>>>> origin/main
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="glass-panel p-8 w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 relative overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+      <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-brandBlue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="glass-panel p-8 w-full max-w-md relative z-10"
+      >
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Welcome Back</h1>
-          <p className="text-slate-500">Sign in to Access Analytics</p>
+          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }}>
+             <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">{isSignUp ? 'Create Account' : 'Welcome Back'}</h1>
+          </motion.div>
+          <p className="text-slate-500">{isSignUp ? 'Sign up for a new account' : 'Sign in with an authorized account'}</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        {error && (
+           <motion.div 
+              initial={{ x: -10, opacity: 0 }} 
+              animate={{ x: 0, opacity: 1 }} 
+              className="mb-6 p-3 rounded-lg bg-rose-50 border border-rose-100 flex items-center text-rose-600 gap-2 text-sm"
+           >
+              <AlertCircle className="w-4 h-4" />
+              {error}
+           </motion.div>
+        )}
+
+        <form onSubmit={handleAuth} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
             <div className="relative">
@@ -32,7 +81,7 @@ export default function Login() {
               <input
                 type="email"
                 required
-                className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 outline-none"
+                className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white outline-none shadow-sm"
                 placeholder="admin@payment.local"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -49,7 +98,7 @@ export default function Login() {
               <input
                 type="password"
                 required
-                className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 outline-none"
+                className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white outline-none shadow-sm"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -57,14 +106,27 @@ export default function Login() {
             </div>
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            disabled={loading}
             type="submit"
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Sign In
-          </button>
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isSignUp ? 'Sign Up' : 'Sign In To Dashboard')}
+          </motion.button>
         </form>
-      </div>
+        
+        <div className="mt-6 text-center text-sm">
+           <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary-600 hover:text-primary-500 font-medium cursor-pointer transition-colors">
+              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+           </button>
+        </div>
+        
+        <div className="mt-8 text-center text-xs text-slate-400">
+           Sample roles: admin, analyst, viewer (@payment.local) <br/> Passwords: [role]123
+        </div>
+      </motion.div>
     </div>
   );
 }

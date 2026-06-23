@@ -1,0 +1,8 @@
+{
+  "name": "payment-root",
+  "private": true,
+  "scripts": {
+    "build": "cd payment-dashboard-ui && rm -rf node_modules && npm install && npm run build",
+    "install": "echo 'Skipping root install'"
+  }
+}

@@ -29,7 +29,12 @@ impl TransactionService for PaymentService {
             return Err(Status::invalid_argument("Transaction ID and Merchant ID are required"));
         }
 
+<<<<<<< HEAD
         let is_success = req.status.to_uppercase() == "SUCCESS";
+=======
+        let is_success = req.status.eq_ignore_ascii_case("SUCCESS");
+        let tx_id = Uuid::new_v4();
+>>>>>>> origin/main
         let now = Utc::now();
 
         
@@ -63,14 +68,14 @@ impl TransactionService for PaymentService {
             return Err(Status::internal("Database error"));
         }
 
-       
-        let failed_inc: i64 = if is_success { 0 } else { 1 };
-        let volume_inc: f64 = if is_success { req.amount } else { 0.0 };
+        let failed_int: i32 = if is_success { 0 } else { 1 };
+        let success_rate: f64 = if is_success { 100.0 } else { 0.0 };
 
         let success_rate: f64 = if is_success { 100.0 } else { 0.0 };
 
         let update_stats_result = sqlx::query(
             r#"
+<<<<<<< HEAD
             INSERT INTO merchant_stats (merchant_id, total_transactions, failed_transactions, total_amount, success_rate)
             VALUES ($1, 1, $2, $3, $4)
             ON CONFLICT (merchant_id) DO UPDATE SET
@@ -85,6 +90,24 @@ impl TransactionService for PaymentService {
         .bind(&req.merchant_id)
         .bind(failed_inc)
         .bind(volume_inc)
+=======
+            INSERT INTO merchant_stats (merchant_id, total_transactions, total_amount, failed_transactions, success_rate)
+            VALUES ($1, 1, $2, $3, $4)
+            ON CONFLICT (merchant_id) DO UPDATE SET
+                total_transactions  = merchant_stats.total_transactions + 1,
+                total_amount        = merchant_stats.total_amount + $2,
+                failed_transactions = merchant_stats.failed_transactions + $3,
+                success_rate        = ROUND(
+                    (CAST(merchant_stats.total_transactions + 1 - merchant_stats.failed_transactions - $3 AS FLOAT)
+                    / CAST(merchant_stats.total_transactions + 1 AS FLOAT)) * 100,
+                    2
+                )
+            "#
+        )
+        .bind(&req.merchant_id)
+        .bind(req.amount)
+        .bind(failed_int)
+>>>>>>> origin/main
         .bind(success_rate)
         .execute(&mut *tx)
         .await;
